@@ -16,6 +16,17 @@ def initialize():
   db.session.commit()
   print(bob)
 
+@app.cli.command('delete-user')
+@click.argument('username', default='bob')
+def delete_user(username):
+  bob = User.query.filter_by(username=username).first()
+  if not bob:
+      print(f'{username} not found!')
+      return
+  db.session.delete(bob)
+  db.session.commit()
+  print(f'{username} deleted')
+
 @app.cli.command("get-user", help="Retrieves a User")
 @click.argument('username', default='bob')
 def get_user(username):
@@ -44,19 +55,25 @@ def change_email(username, email):
   db.session.commit()
   print(bob)
 
-@app.cli.command('create-user')
+@app.cli.command("create-user", help="Creates a new user")
 @click.argument('username', default='rick')
 @click.argument('email', default='rick@mail.com')
 @click.argument('password', default='rickpass')
 def create_user(username, email, password):
   newuser = User(username, email, password)
+  msg = ""
+  res
   try:
     db.session.add(newuser)
     db.session.commit()
-  except IntegrityError as e:
+  except IntegrityError:
     #let's the database undo any previous steps of a transaction
     db.session.rollback()
     # print(e.orig) #optionally print the error raised by the database
-    print("Username or email already taken!") #give the user a useful message
+    msg = ("Username or email already taken!") #give the user a useful message
+    res = None
   else:
-    print(newuser) # print the newly created user
+    msg = str(newuser)# print the newly created user
+finally:
+  print(msg)
+  return res
